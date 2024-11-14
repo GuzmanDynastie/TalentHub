@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 import pkg from "pg";
 
 dotenv.config();
-const { Client } = pkg;
+const { Pool } = pkg;
 
-const connectionData = {
+const pool = new Pool ({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
@@ -14,17 +14,17 @@ const connectionData = {
         rejectUnauthorized: true,
         ca: process.env.DB_SSL_CERT,
     },
-}
-
-const client = new Client(connectionData);
+});
 
 const connectDB = async () => {
-    try {
-        await client.connect();
-        console.log('Conectado a la base de datos');
-    } catch (e) {
-        console.error('Error en la conexion a la base de datos: ', { e });
+    const client = await pool.connect();
+    return client;
+};
+
+const closeDB = async (client) => {
+    if (client) {
+        client.release();
     }
 };
 
-export { connectDB, client };
+export { connectDB, closeDB };
